@@ -1,0 +1,10 @@
+
+{% if error %}
+{{ error }}
+{% endif %}
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+    Upload file: <input type="file" name="file" /><br>
+    Name: <input type="text" name="filename" /><br>
+    <input type="submit" value="Upload" /><br>
+</form>
