@@ -92,7 +92,7 @@ def url_params_format(value):
                 else:
                     second = bool(second)
             # empty means essential, essential is True
-            output_value.update({key: (first, second)})
+            output_value.update({key: [first, second]})
     return output_value
 
 
@@ -127,5 +127,13 @@ def urlencode_format(value):
                 third = True
             else:
                 third = False
-            output_value.update({key:(first, second, third)})
+            output_value.update({key:[first, second, third]})
     return output_value
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) < 2:
+        print('Usage: {} ini_file'.format(sys.argv[0]))
+        exit(1)
+    print(ini_parser(sys.argv[1]))

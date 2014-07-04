@@ -6,17 +6,15 @@ import os.path
 import urllib.parse
 
 from flask import Flask
-from flask import abort
-from flask import flash
-from flask import g
 from flask import redirect
 from flask import render_template
 from flask import request
-from flask import session
 from flask import url_for
 app = Flask(__name__)
 
 import requests
+
+from ini_parser import ini_parser
 
 # logger shortcut
 debug = app.logger.debug
@@ -55,38 +53,10 @@ def hello_post(name):
     data = dict(urllib.parse.parse_qsl(request.data.decode()))
     return 'haha ' + name + ' : ' + data['name']
 
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
-
-@app.route('/action', methods=['POST'])
-def action():
-    url = request.form['url']
-    method = request.form['method']
-    headers = request.form.get('headers', '')
-    data = request.form.get('data', '')
-
-    if   method == 'GET':       query_func = requests.get
-    elif method == 'POST':      query_func = requests.post
-    elif method == 'PUT':       query_func = requests.put
-    elif method == 'DELETE':    query_func = requests.delete
-    else:
-        return 'Unknown method.', 500
-
-    headers = parse_headers(headers)
-
-    print(headers)
-    print(data)
-    r = query_func(url, data=data, headers=headers)
-
-    print(dict(r.headers))
-    ret = {
-        'status_code': r.status_code,
-        'headers': dict(r.headers),
-        'data': r.text,
-    }
-    
-    return json.dumps(ret)
 
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -113,6 +83,48 @@ def upload():
         return redirect(url_for('index'))
 
 
+#################### AJAX end ####################
+@app.route('/action', methods=['POST'])
+def action():
+    url = request.form['url']
+    method = request.form['method']
+    headers = request.form.get('headers', '')
+    data = request.form.get('data', '')
+
+    if   method == 'GET':       query_func = requests.get
+    elif method == 'POST':      query_func = requests.post
+    elif method == 'PUT':       query_func = requests.put
+    elif method == 'DELETE':    query_func = requests.delete
+    else:
+        return 'Unknown method.', 500
+
+    headers = parse_headers(headers)
+
+    print(headers)
+    print(data)
+    r = query_func(url, data=data, headers=headers)
+
+    print(dict(r.headers))
+    ret = {
+        'status_code': r.status_code,
+        'headers': dict(r.headers),
+        'data': r.text,
+    }
+    return json.dumps(ret)
+
+
+@app.route('/get_list', methods=['GET'])
+def get_list():
+    ret = []
+    for filename in os.listdir(UPLOAD_DIR):
+        apis = ini_parser(os.path.join(UPLOAD_DIR, filename))
+        ret.append({
+            'name': os.path.splitext(filename)[1],
+            'apis': apis,
+        })
+    return json.dumps(ret)
+
+
 #################### main ####################
 def main():
     if not os.path.exists(UPLOAD_DIR):
@@ -123,6 +135,7 @@ def main():
         threaded = True,
         debug = DEBUG,
     )
+
 
 if __name__ == '__main__':
     main()
