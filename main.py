@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import urllib.parse
+import json
 import os
 import os.path
+import urllib.parse
 
 from flask import Flask
 from flask import abort
@@ -77,13 +78,16 @@ def action():
     print(headers)
     print(data)
     r = query_func(url, data=data, headers=headers)
+
+    print(dict(r.headers))
+    ret = {
+        'status_code': r.status_code,
+        'headers': dict(r.headers),
+        'data': r.text,
+    }
     
-    return render_template(
-        'action.html',
-        status_code = r.status_code,
-        headers = r.headers,
-        data = r.text,
-    )
+    return json.dumps(ret)
+
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
